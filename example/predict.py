@@ -4,7 +4,10 @@ import json
 import logging
 import argparse
 from deeplog.deeplog import model_fn, input_fn, predict_fn
-
+from sklearn.metrics import ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 logging.basicConfig(level=logging.WARNING,
                     format='[%(asctime)s][%(levelname)s]: %(message)s')
@@ -96,3 +99,20 @@ if __name__ == '__main__':
     logger.info(f'Precision: {precision}')
     logger.info(f'Recall: {recall}')
     logger.info(f'F1: {F1}')
+
+    
+
+    # Use your existing `ground_truth` and `predict` arrays
+    conf_matrix = confusion_matrix(ground_truth, predict)
+
+    # Create a display for the confusion matrix
+    disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=["Normal", "Abnormal"])
+
+    # Plot the confusion matrix
+    disp.plot(cmap=plt.cm.Blues)
+    plt.title("Confusion Matrix")
+    # Save the confusion matrix plot
+    plt.savefig("confusion_matrix.png")
+    print("Confusion matrix plot saved as confusion_matrix.png")
+
+
