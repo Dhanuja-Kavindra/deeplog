@@ -8,6 +8,8 @@ from sklearn.metrics import ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import roc_curve, auc
+import numpy as np
 
 logging.basicConfig(level=logging.WARNING,
                     format='[%(asctime)s][%(levelname)s]: %(message)s')
@@ -100,14 +102,11 @@ if __name__ == '__main__':
     logger.info(f'Recall: {recall}')
     logger.info(f'F1: {F1}')
 
+    #-----------------Visualization-------------------------------------#
     
-
-    # Use your existing `ground_truth` and `predict` arrays
-    conf_matrix = confusion_matrix(ground_truth, predict)
-
     # Create a display for the confusion matrix
+    conf_matrix = confusion_matrix(ground_truth, predict)
     disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=["Normal", "Abnormal"])
-
     # Plot the confusion matrix
     disp.plot(cmap=plt.cm.Blues)
     plt.title("Confusion Matrix")
@@ -115,4 +114,55 @@ if __name__ == '__main__':
     plt.savefig("confusion_matrix.png")
     print("Confusion matrix plot saved as confusion_matrix.png")
 
+    # Generate ROC curve values
+    fpr, tpr, _ = roc_curve(ground_truth, predict)
+    roc_auc = auc(fpr, tpr)
+    # Plot ROC curve
+    plt.figure()
+    plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (area = {roc_auc:.2f})')
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--', label='Random guess')
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC Curve')
+    plt.legend(loc="lower right")
+    # Save the ROC curve
+    plt.savefig("roc_curve.png")
+    print("ROC curve saved as roc_curve.png")
 
+
+    # Threshold values to evaluate
+    thresholds = np.arange(0, max(max(abnormal_cnt_anomaly), max(normal_cnt_anomaly)) + 1, 1)
+
+    # Initialize lists for metrics
+    precision_vals = []
+    recall_vals = []
+    f1_vals = []
+
+    # Calculate metrics for each threshold
+    for thres in thresholds:
+        preds = [1 if cnt > thres else 0 for cnt in abnormal_cnt_anomaly + normal_cnt_anomaly]
+        tp = sum(1 for p, t in zip(preds, ground_truth) if p == 1 and t == 1)
+        fp = sum(1 for p, t in zip(preds, ground_truth) if p == 1 and t == 0)
+        fn = sum(1 for p, t in zip(preds, ground_truth) if p == 0 and t == 1)
+
+        precision = tp / (tp + fp) if (tp + fp) else 0
+        recall = tp / (tp + fn) if (tp + fn) else 0
+        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) else 0
+
+        precision_vals.append(precision)
+        recall_vals.append(recall)
+        f1_vals.append(f1)
+
+    # Plot Precision, Recall, and F1 vs. Threshold
+    plt.figure()
+    plt.plot(thresholds, precision_vals, label="Precision", lw=2)
+    plt.plot(thresholds, recall_vals, label="Recall", lw=2)
+    plt.plot(thresholds, f1_vals, label="F1 Score", lw=2)
+    plt.xlabel("Threshold")
+    plt.ylabel("Metric Value")
+    plt.title("Metrics vs. Threshold")
+    plt.legend(loc="best")
+
+    # Save the Metrics vs. Threshold plot
+    plt.savefig("metrics_vs_threshold.png")
+    print("Metrics vs. Threshold plot saved as metrics_vs_threshold.png")
