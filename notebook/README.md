@@ -12,7 +12,7 @@ This repository contains **three Jupyter notebooks** designed to examine **HDFS,
 ---
 
 ## **Repository Source and Modifications**  
-This repository is **forked** from the original implementation at:  
+This repository is **forked** from the implementation at:  
 [**DeepLog Repository**](https://github.com/nailo2c/deeplog)  
 
 Several modifications were made to **accommodate new datasets and fix coding errors** in the original implementation.
